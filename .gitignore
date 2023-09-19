@@ -1,0 +1,7 @@
+*.idea
+*.exe
+*/cmake-build-default/
+
+*/tools/
+*/out.txt
+*/0000.txt
