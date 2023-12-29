@@ -135,7 +135,7 @@ struct State {
     }
 
     double work_single_efficiency(Card card, Project project) {
-        return (double)project.v / (double)project.h * (double)card.w / (double)card.p;
+        return min((double)project.v / (double)project.h * (double)card.w, (double)project.v) - (double)card.p;
     }
 
     double work_all_efficiency(Card card) {
@@ -196,19 +196,19 @@ struct State {
         vector<int> efficient_projects = get_efficient_projects();
 
         for (int i = 0; i < next_cards.size() && invest_level < MAX_INVEST_LEVEL; ++i) {
-            if (next_cards[i].t == CardType::INVEST && money >= next_cards[i].p * 2 && turn < 800) {
+            if (next_cards[i].t == CardType::INVEST && money >= next_cards[i].p * 2 && turn > 100) {
                 return i;
             }
         }
         for (int i = 0; i < next_cards.size(); ++i) {
-            if (next_cards[i].t == CardType::WORK_ALL && money >= next_cards[i].p * 2 && turn < 800 &&
-                work_all_efficiency(next_cards[i]) > 3) {
+            if (next_cards[i].t == CardType::WORK_ALL && money >= next_cards[i].p * 2 && turn > 200 &&
+                work_all_efficiency(next_cards[i]) > 0) {
                 return i;
             }
         }
         for (int i = 0; i < next_cards.size(); ++i) {
             if (projects[efficient_projects[0]].expected_value() < target_efficiency) {
-                if (next_cards[i].t == CardType::CANCEL_ALL && money >= next_cards[i].p * 100 && turn < 400) {
+                if (next_cards[i].t == CardType::CANCEL_ALL && money >= next_cards[i].p * 100 && turn > 400) {
                     return i;
                 }
             }
@@ -216,7 +216,7 @@ struct State {
 
         if (projects[efficient_projects.back()].expected_value() < target_efficiency) {
             for (int i = 0; i < next_cards.size(); ++i) {
-                if (next_cards[i].t == CardType::CANCEL_SINGLE && money >= next_cards[i].p * 300 && turn < 400) {
+                if (next_cards[i].t == CardType::CANCEL_SINGLE && money >= next_cards[i].p * 200 && turn > 50) {
                     return i;
                 }
             }
@@ -253,7 +253,8 @@ struct Solver {
         State state;
         state.cards = judge.read_initial_cards();
         state.projects = judge.read_projects();
-        for (state.turn = 0; state.turn < t; ++state.turn) {
+        state.turn = t;
+        while (state.turn--) {
             auto [use_card_i, use_target] = state.select_action();
             const Card& use_card = state.cards[use_card_i];
             if (use_card.t == CardType::INVEST) {
