@@ -2,6 +2,7 @@
 *.exe
 */cmake-build-default/
 
-*/tools/
+*target/
 */out.txt
-/**/0000.txt
+*tests/
+*sample*
